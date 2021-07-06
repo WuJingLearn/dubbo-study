@@ -17,6 +17,7 @@
 package org.apache.dubbo.demo.provider;
 
 import org.apache.dubbo.demo.DemoService;
+import org.apache.dubbo.demo.Student;
 import org.apache.dubbo.rpc.RpcContext;
 
 import org.slf4j.Logger;
@@ -36,6 +37,26 @@ public class DemoServiceImpl implements DemoService {
             e.printStackTrace();
         }
         return "Hello " + name + ", response from provider: " + RpcContext.getContext().getLocalAddress();
+    }
+
+    @Override
+    public String save(Student student) {
+        return null;
+    }
+
+    @Override
+    public String update(Student student) {
+        return null;
+    }
+
+    @Override
+    public String sayHi(Student student) {
+        return null;
+    }
+
+    @Override
+    public String eat(String name, String male, String fox, Student student) {
+        return null;
     }
 
     @Override

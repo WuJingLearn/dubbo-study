@@ -87,6 +87,14 @@ import static org.springframework.util.ClassUtils.resolveClassName;
  * @see BeanDefinitionRegistryPostProcessor
  * @since 2.7.7
  */
+
+/**
+ * BeanDefinitionRegistryPostProcessor,
+ * ServiceClassPostProcessor： 注册 bd， 用来扫描DubboService和@Servicd注解，然后生成bean定义
+ *
+ * 1.注册 DubboBootstrapApplicationListener listner
+ *
+ */
 public class ServiceClassPostProcessor implements BeanDefinitionRegistryPostProcessor, EnvironmentAware,
         ResourceLoaderAware, BeanClassLoaderAware {
 
@@ -110,6 +118,7 @@ public class ServiceClassPostProcessor implements BeanDefinitionRegistryPostProc
 
     private ClassLoader classLoader;
 
+    //扫描的包
     public ServiceClassPostProcessor(String... packagesToScan) {
         this(asList(packagesToScan));
     }
@@ -122,6 +131,7 @@ public class ServiceClassPostProcessor implements BeanDefinitionRegistryPostProc
         this.packagesToScan = packagesToScan;
     }
 
+    //在spring容器完成扫描之后，生成完bean定义之后触发，
     @Override
     public void postProcessBeanDefinitionRegistry(BeanDefinitionRegistry registry) throws BeansException {
 
@@ -146,8 +156,16 @@ public class ServiceClassPostProcessor implements BeanDefinitionRegistryPostProc
      * @param packagesToScan The base packages to scan
      * @param registry       {@link BeanDefinitionRegistry}
      */
+    /**
+     * 标记了service注解
+     * @param packagesToScan
+     * @param registry
+     */
     private void registerServiceBeans(Set<String> packagesToScan, BeanDefinitionRegistry registry) {
 
+        /**
+         * scanner 扫描 Service @DubboService注解, 不扫描spring默认的
+         */
         DubboClassPathBeanDefinitionScanner scanner =
                 new DubboClassPathBeanDefinitionScanner(registry, environment, resourceLoader);
 
@@ -168,6 +186,7 @@ public class ServiceClassPostProcessor implements BeanDefinitionRegistryPostProc
             // Finds all BeanDefinitionHolders of @Service whether @ComponentScan scans or not.
             Set<BeanDefinitionHolder> beanDefinitionHolders =
                     findServiceBeanDefinitionHolders(scanner, packageToScan, registry, beanNameGenerator);
+
 
             if (!CollectionUtils.isEmpty(beanDefinitionHolders)) {
 
@@ -196,7 +215,7 @@ public class ServiceClassPostProcessor implements BeanDefinitionRegistryPostProc
 
     /**
      * It'd better to use BeanNameGenerator instance that should reference
-     * {@link ConfigurationClassPostProcessor#componentScanBeanNameGenerator},
+     * {@link ConfigurationClassPostProcessor},
      * thus it maybe a potential problem on bean name generation.
      *
      * @param registry {@link BeanDefinitionRegistry}
@@ -284,7 +303,7 @@ public class ServiceClassPostProcessor implements BeanDefinitionRegistryPostProc
          * The {@link AnnotationAttributes} of @Service annotation
          */
         AnnotationAttributes serviceAnnotationAttributes = getAnnotationAttributes(service, false, false);
-
+        //接口名,取实现的第一个接口
         Class<?> interfaceClass = resolveServiceInterfaceClass(serviceAnnotationAttributes, beanClass);
 
         String annotatedServiceBeanName = beanDefinitionHolder.getBeanName();
@@ -292,7 +311,7 @@ public class ServiceClassPostProcessor implements BeanDefinitionRegistryPostProc
         AbstractBeanDefinition serviceBeanDefinition =
                 buildServiceBeanDefinition(service, serviceAnnotationAttributes, interfaceClass, annotatedServiceBeanName);
 
-        // ServiceBean Bean name
+        // ServiceBean Bean name ServiceBean:org.apache.dubbo.demo.DemoService
         String beanName = generateServiceBeanName(serviceAnnotationAttributes, interfaceClass);
 
         if (scanner.checkCandidate(beanName, serviceBeanDefinition)) { // check duplicated candidate bean

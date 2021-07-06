@@ -90,27 +90,27 @@ public class JValidator implements Validator {
         if (jvalidation != null && jvalidation.length() > 0) {
             factory = Validation.byProvider((Class) ReflectUtils.forName(jvalidation)).configure().buildValidatorFactory();
         } else {
-            factory = Validation.buildDefaultValidatorFactory();
+            factory = Validation.buildDefaultValidatorFactory();//Impl
         }
         this.validator = factory.getValidator();
         this.methodClassMap = new ConcurrentHashMap<>();
     }
 
     private static Object getMethodParameterBean(Class<?> clazz, Method method, Object[] args) {
-        if (!hasConstraintParameter(method)) {
+        if (!hasConstraintParameter(method)) {//1.方法上如果没有@Size等注解，则不用生成类
             return null;
         }
-        try {
+        try {////org.apache.dubbo.demo.DemoService_EatParameter_java.lang.String_java.lang.String_java.lang.String_org.apache.dubbo.demo.Student
             String parameterClassName = generateMethodParameterClassName(clazz, method);
             Class<?> parameterClass;
             try {
                 parameterClass = Class.forName(parameterClassName, true, clazz.getClassLoader());
             } catch (ClassNotFoundException e) {
-                parameterClass = generateMethodParameterClass(clazz, method, parameterClassName);
+                parameterClass = generateMethodParameterClass(clazz, method, parameterClassName);//
             }
             Object parameterBean = parameterClass.newInstance();
             for (int i = 0; i < args.length; i++) {
-                Field field = parameterClass.getField(method.getName() + "Argument" + i);
+                Field field = parameterClass.getField(method.getName() + "Argument" + i);//为生成类方法设置参数
                 field.set(parameterBean, args[i]);
             }
             return parameterBean;
@@ -132,26 +132,31 @@ public class JValidator implements Validator {
     private static Class<?> generateMethodParameterClass(Class<?> clazz, Method method, String parameterClassName)
         throws Exception {
         ClassPool pool = ClassGenerator.getClassPool(clazz.getClassLoader());
-        synchronized (parameterClassName.intern()) {
+        synchronized (parameterClassName.intern()) {//根据名称来上锁
             CtClass ctClass = null;
             try {
+                //从池子中获取
                 ctClass = pool.getCtClass(parameterClassName);
             } catch (NotFoundException ignore) {
             }
 
             if (null == ctClass) {
+                //创建类
                 ctClass = pool.makeClass(parameterClassName);
                 ClassFile classFile = ctClass.getClassFile();
                 classFile.setVersionToJava5();
                 ctClass.addConstructor(CtNewConstructor.defaultConstructor(pool.getCtClass(parameterClassName)));
                 // parameter fields
-                Class<?>[] parameterTypes = method.getParameterTypes();
-                Annotation[][] parameterAnnotations = method.getParameterAnnotations();
+                Class<?>[] parameterTypes = method.getParameterTypes();//参数类型
+                Annotation[][] parameterAnnotations = method.getParameterAnnotations();//方法的参数所以的注解，一个参数可以有多个注解
                 for (int i = 0; i < parameterTypes.length; i++) {
+                    //获得每一个参数，
                     Class<?> type = parameterTypes[i];
                     Annotation[] annotations = parameterAnnotations[i];
                     AnnotationsAttribute attribute = new AnnotationsAttribute(classFile.getConstPool(), AnnotationsAttribute.visibleTag);
+                    //遍历参数每一个注解
                     for (Annotation annotation : annotations) {
+                        //如果注解是Constraint类型
                         if (annotation.annotationType().isAnnotationPresent(Constraint.class)) {
                             javassist.bytecode.annotation.Annotation ja = new javassist.bytecode.annotation.Annotation(
                                 classFile.getConstPool(), pool.getCtClass(annotation.annotationType().getName()));
@@ -171,8 +176,11 @@ public class JValidator implements Validator {
                             attribute.addAnnotation(ja);
                         }
                     }
+                    //设置字段
                     String fieldName = method.getName() + "Argument" + i;
+                    //设置字段，并添加类中·
                     CtField ctField = CtField.make("public " + type.getCanonicalName() + " " + fieldName + ";", pool.getCtClass(parameterClassName));
+                    // 为字段添加注解
                     ctField.getFieldInfo().addAttribute(attribute);
                     ctClass.addField(ctField);
                 }
@@ -198,9 +206,9 @@ public class JValidator implements Validator {
     }
 
     private static boolean hasConstraintParameter(Method method) {
-        Annotation[][] parameterAnnotations = method.getParameterAnnotations();
+        Annotation[][] parameterAnnotations = method.getParameterAnnotations();//获得参数注解，一个参数可以有多个注解
         if (parameterAnnotations != null && parameterAnnotations.length > 0) {
-            for (Annotation[] annotations : parameterAnnotations) {
+            for (Annotation[] annotations : parameterAnnotations) {//每一个annotations是一个参数的所有注解
                 for (Annotation annotation : annotations) {
                     if (annotation.annotationType().isAnnotationPresent(Constraint.class)) {
                         return true;
@@ -254,6 +262,7 @@ public class JValidator implements Validator {
         return memberValue;
     }
 
+    //方法名，参数类型，参数值
     @Override
     public void validate(String methodName, Class<?>[] parameterTypes, Object[] arguments) throws Exception {
         List<Class<?>> groups = new ArrayList<>();
@@ -262,6 +271,7 @@ public class JValidator implements Validator {
             groups.add(methodClass);
         }
         Set<ConstraintViolation<?>> violations = new HashSet<>();
+        //当前执行方法
         Method method = clazz.getMethod(methodName, parameterTypes);
         Class<?>[] methodClasses;
         if (method.isAnnotationPresent(MethodValidated.class)){
@@ -270,16 +280,16 @@ public class JValidator implements Validator {
         }
         // add into default group
         groups.add(0, Default.class);
-        groups.add(1, clazz);
+        groups.add(1, clazz);//DemoService
 
         // convert list to array
         Class<?>[] classgroups = groups.toArray(new Class[groups.size()]);
-
+        //使用javassist动态生成一个类
         Object parameterBean = getMethodParameterBean(clazz, method, arguments);
         if (parameterBean != null) {
             violations.addAll(validator.validate(parameterBean, classgroups ));
         }
-
+        //
         for (Object arg : arguments) {
             validate(violations, arg, classgroups);
         }
@@ -292,6 +302,7 @@ public class JValidator implements Validator {
 
     private Class methodClass(String methodName) {
         Class<?> methodClass = null;
+        //内部类
         String methodClassName = clazz.getName() + "$" + toUpperMethodName(methodName);
         Class cached = methodClassMap.get(methodClassName);
         if (cached != null) {
@@ -322,7 +333,7 @@ public class JValidator implements Validator {
                     validate(violations, entry.getValue(), groups);
                 }
             } else {
-                violations.addAll(validator.validate(arg, groups));
+                violations.addAll(validator.validate(arg, groups));//如果参数是对象的话，直接验证
             }
         }
     }

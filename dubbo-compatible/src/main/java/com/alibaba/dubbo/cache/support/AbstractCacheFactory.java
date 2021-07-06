@@ -28,7 +28,7 @@ import java.util.concurrent.ConcurrentMap;
 import static org.apache.dubbo.common.constants.CommonConstants.METHOD_KEY;
 
 @Deprecated
-public abstract class AbstractCacheFactory implements CacheFactory {
+public abstract class  AbstractCacheFactory implements CacheFactory {
 
     private final ConcurrentMap<String, Cache> caches = new ConcurrentHashMap<String, Cache>();
 

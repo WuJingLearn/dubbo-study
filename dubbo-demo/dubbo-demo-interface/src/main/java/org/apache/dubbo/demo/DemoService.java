@@ -16,14 +16,35 @@
  */
 package org.apache.dubbo.demo;
 
+import javax.validation.GroupSequence;
+import javax.validation.constraints.Size;
 import java.util.concurrent.CompletableFuture;
 
 public interface DemoService {
 
-    String sayHello(String name);
+
+    @interface SayHello{}
+    String sayHello(@Size(max = 3,groups = SayHello.class) String name);
+
+
+   // @GroupSequence(value = Update.class)
+    interface Save{}
+
+    interface Update{}
+
+    String save(Student student);
+
+
+    String update(Student student);
+
+
+    String sayHi(Student student);
+
+    String eat(@Size(max = 4) String name, @Size(max = 4) String male, String fox,Student student);
 
     default CompletableFuture<String> sayHelloAsync(String name) {
         return CompletableFuture.completedFuture(sayHello(name));
     }
+
 
 }

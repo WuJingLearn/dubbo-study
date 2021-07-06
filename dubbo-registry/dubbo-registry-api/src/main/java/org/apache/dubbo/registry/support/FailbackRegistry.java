@@ -62,6 +62,7 @@ public abstract class FailbackRegistry extends AbstractRegistry {
     private final int retryPeriod;
 
     // Timer for failure retry, regular check if there is a request for failure, and if there is, an unlimited retry
+    //执行失败重试任务的时间轮
     private final HashedWheelTimer retryTimer;
 
     public FailbackRegistry(URL url) {
@@ -90,6 +91,7 @@ public abstract class FailbackRegistry extends AbstractRegistry {
         failedUnsubscribed.remove(h);
     }
 
+    //如果注册失败,添加任务到时间轮中去
     private void addFailedRegistered(URL url) {
         FailedRegisteredTask oldOne = failedRegistered.get(url);
         if (oldOne != null) {
@@ -192,6 +194,7 @@ public abstract class FailbackRegistry extends AbstractRegistry {
     }
 
 
+    //注册
     @Override
     public void register(URL url) {
         if (!acceptable(url)) {
@@ -203,6 +206,7 @@ public abstract class FailbackRegistry extends AbstractRegistry {
         removeFailedUnregistered(url);
         try {
             // Sending a registration request to the server side
+            //调用zkclient.注册到注册中心去
             doRegister(url);
         } catch (Exception e) {
             Throwable t = e;

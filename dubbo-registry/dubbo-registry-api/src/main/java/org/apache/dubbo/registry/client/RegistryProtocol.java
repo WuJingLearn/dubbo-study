@@ -178,7 +178,7 @@ public class RegistryProtocol implements Protocol {
     }
 
     private void register(URL registryUrl, URL registeredProviderUrl) {
-        Registry registry = registryFactory.getRegistry(registryUrl);
+        Registry registry = registryFactory.getRegistry(registryUrl);//根据url的protocol为zookeeper，拿到
         registry.register(registeredProviderUrl);
     }
 

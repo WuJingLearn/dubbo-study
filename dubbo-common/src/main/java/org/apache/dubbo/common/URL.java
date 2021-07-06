@@ -208,7 +208,7 @@ class URL implements Serializable {
         this.port = Math.max(port, 0);
         this.address = getAddress(this.host, this.port);
 
-        // trim the beginning "/"
+        // trim the beginning "/"去掉开始的/
         while (path != null && path.startsWith("/")) {
             path = path.substring(1);
         }

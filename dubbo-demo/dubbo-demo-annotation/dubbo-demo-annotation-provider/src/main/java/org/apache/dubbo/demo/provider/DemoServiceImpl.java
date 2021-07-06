@@ -18,6 +18,7 @@ package org.apache.dubbo.demo.provider;
 
 import org.apache.dubbo.config.annotation.DubboService;
 import org.apache.dubbo.demo.DemoService;
+import org.apache.dubbo.demo.Student;
 import org.apache.dubbo.rpc.RpcContext;
 
 import org.slf4j.Logger;
@@ -25,6 +26,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.CompletableFuture;
 
+//暴露服务
 @DubboService
 public class DemoServiceImpl implements DemoService {
     private static final Logger logger = LoggerFactory.getLogger(DemoServiceImpl.class);
@@ -32,7 +34,31 @@ public class DemoServiceImpl implements DemoService {
     @Override
     public String sayHello(String name) {
         logger.info("Hello " + name + ", request from consumer: " + RpcContext.getContext().getRemoteAddress());
-        return "Hello " + name + ", response from provider: " + RpcContext.getContext().getLocalAddress();
+        System.out.println("来了 收到请求了");
+        return "hello double";
+    }
+
+    @Override
+    public String save(Student student) {
+        return null;
+    }
+
+    @Override
+    public String update(Student student) {
+        return null;
+    }
+
+    @Override
+    public String sayHi(Student student) {
+        System.out.println("mnethod sayhi inter");
+        System.out.println(student);
+        return "say hi";
+    }
+
+    @Override
+    public String eat(String name,String male,String fox,Student student) {
+        System.out.println(student+"吃"+name);
+        return "eat";
     }
 
     @Override

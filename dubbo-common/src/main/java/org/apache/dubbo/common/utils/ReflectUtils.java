@@ -159,7 +159,7 @@ public final class ReflectUtils {
         }
         return isPrimitive(cls);
     }
-
+    //判断类型是否为基本类型
     public static boolean isPrimitive(Class<?> cls) {
         return cls.isPrimitive() || cls == String.class || cls == Boolean.class || cls == Character.class
                 || Number.class.isAssignableFrom(cls) || Date.class.isAssignableFrom(cls);

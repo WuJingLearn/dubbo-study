@@ -24,9 +24,11 @@ import org.apache.dubbo.common.utils.CollectionUtils;
 
 import java.util.List;
 
+/**
+ * 装饰器实现抽象接口
+ */
 public class ListenerRegistryWrapper implements Registry {
     private static final Logger logger = LoggerFactory.getLogger(ListenerRegistryWrapper.class);
-
     private final Registry registry;
     private final List<RegistryServiceListener> listeners;
 

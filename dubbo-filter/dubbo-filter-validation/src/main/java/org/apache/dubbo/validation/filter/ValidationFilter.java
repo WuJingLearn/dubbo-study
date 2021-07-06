@@ -85,8 +85,10 @@ public class ValidationFilter implements Filter {
         if (validation != null && !invocation.getMethodName().startsWith("$")
                 && ConfigUtils.isNotEmpty(invoker.getUrl().getMethodParameter(invocation.getMethodName(), VALIDATION_KEY))) {
             try {
+                //JValidator
                 Validator validator = validation.getValidator(invoker.getUrl());
                 if (validator != null) {
+
                     validator.validate(invocation.getMethodName(), invocation.getParameterTypes(), invocation.getArguments());
                 }
             } catch (RpcException e) {

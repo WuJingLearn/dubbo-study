@@ -17,20 +17,57 @@
 package org.apache.dubbo.demo.consumer.comp;
 
 import org.apache.dubbo.config.annotation.DubboReference;
+import org.apache.dubbo.config.annotation.DubboService;
 import org.apache.dubbo.demo.DemoService;
 
+import org.apache.dubbo.demo.Student;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
 import java.util.concurrent.CompletableFuture;
 
 @Component("demoServiceComponent")
 public class DemoServiceComponent implements DemoService {
-    @DubboReference
+    //当参数完全相同时，才相同
+    @DubboReference()
     private DemoService demoService;
 
+    @Autowired
+    ApplicationContext  applicationContext;
+
+    @DubboReference(validation = "false")
+    private DemoService demoService2;
+
+    @PostConstruct
+    public void init(){
+        System.out.println("DemoService中客户端对象1: "+demoService+"客户端对象二: "+demoService2);
+    }
+    //
     @Override
     public String sayHello(String name) {
         return demoService.sayHello(name);
+    }
+
+    @Override
+    public String save(Student student) {
+          return demoService.save(student);
+    }
+
+    @Override
+    public String update(Student student) {
+        return demoService.update(student);
+    }
+
+    @Override
+    public String sayHi(Student student) {
+        return demoService.sayHi(student);
+    }
+
+    @Override
+    public String eat(String name, String male,String fox,Student student) {
+        return demoService.eat(name,male,fox,student);
     }
 
     @Override
